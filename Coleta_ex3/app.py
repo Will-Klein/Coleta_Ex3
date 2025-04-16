@@ -61,15 +61,29 @@ def get_championship_by_name(championship_name):
 
 @app.route('/insert-championship', methods=['POST'])
 def insert_championship():
-    return 'Insert Championship'
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    consume_data.inserir_championship(data)
+    return 'Campeonato Inserido', 201
+    
+    
 
 @app.route('/update-championship', methods=['PUT'])
 def update_championship():
     return 'Update Championship'
 
-@app.route('/delete-championship/<string:championship_name>', methods=['DELETE'])
+@app.route('/delete-championship', methods=['DELETE'])
 def delete_championship():
-    return 'Delete Championship'
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Chama a função deletar_championship e obtém o resultado
+    resultado = consume_data.deletar_championship(data)
+
+    # Retorna a mensagem e o status_code apropriados
+    return jsonify({'mensagem': resultado['mensagem']}), resultado['status_code']
 
 if __name__ == '__main__':
     app.run(debug=True)
