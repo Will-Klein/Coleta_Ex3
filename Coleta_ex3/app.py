@@ -66,12 +66,19 @@ def insert_championship():
         return jsonify({'error': 'No data provided'}), 400
     consume_data.inserir_championship(data)
     return 'Campeonato Inserido', 201
-    
-    
 
 @app.route('/update-championship', methods=['PUT'])
 def update_championship():
-    return 'Update Championship'
+    # Obtém os dados enviados na requisição
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Chama o método atualizar_championship do consume_data
+    resultado = consume_data.atualizar_championship(data)
+
+    # Retorna a mensagem e o status_code apropriados
+    return jsonify({'mensagem': resultado['mensagem']}), resultado['status_code']
 
 @app.route('/delete-championship', methods=['DELETE'])
 def delete_championship():

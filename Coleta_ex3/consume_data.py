@@ -61,3 +61,37 @@ def deletar_championship(data):
     except Exception as e:
         print(f"Ocorreu um erro ao deletar os dados: {e}")
         return {"mensagem": "Erro interno no servidor.", "status_code": 500}
+    
+def atualizar_championship(data):
+    try:
+        # Verifica se todos os campos necessários estão presentes no JSON
+        required_fields = ["Tournament", "Stage", "Match Type", "Map", "Agent", "Pick Rate"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return {
+                "mensagem": f"Campos ausentes: {', '.join(missing_fields)}",
+                "status_code": 400
+            }
+
+        # Lê o arquivo CSV existente
+        df = pd.read_csv(csv_file)
+
+        # Constrói a condição para identificar a linha a ser atualizada
+        condition = True
+        for coluna, valor in data.items():
+            if coluna != "Pick Rate":  # Ignora o campo que será atualizado
+                condition &= (df[coluna] == valor)
+
+        # Verifica se alguma linha atende à condição
+        if not condition.any():
+            return {"mensagem": "Campeonato não encontrado.", "status_code": 404}
+
+        # Atualiza o campo 'Pick Rate' na linha correspondente
+        df.loc[condition, "Pick Rate"] = data["Pick Rate"]
+
+        # Salva o DataFrame atualizado de volta no CSV
+        df.to_csv(csv_file, index=False)
+        return {"mensagem": "Campeonato atualizado com sucesso!", "status_code": 200}
+    except Exception as e:
+        print(f"Ocorreu um erro ao atualizar os dados: {e}")
+        return {"mensagem": "Erro interno ao atualizar o campeonato.", "status_code": 500}
