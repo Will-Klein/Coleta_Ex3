@@ -15,12 +15,10 @@ def get_championships():
         if request.method == 'GET':
             return consulta_csv.to_json(orient='records')
         elif request.method == 'POST':
-            # Get the JSON payload from the request
             filters = request.get_json()
             if not filters:
                 return jsonify({'error': 'No filters provided'}), 400
 
-            # Apply filters dynamically
             filtered_data = consulta_csv
             for field, value in filters.items():
                 if field in filtered_data.columns:
@@ -28,7 +26,6 @@ def get_championships():
                 else:
                     return jsonify({'error': f'Field "{field}" does not exist in the dataset'}), 400
 
-            # Return the filtered data
             if not filtered_data.empty:
                 return filtered_data.to_json(orient='records')
             else:
@@ -69,15 +66,12 @@ def insert_championship():
 
 @app.route('/update-championship', methods=['PUT'])
 def update_championship():
-    # Obtém os dados enviados na requisição
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    # Chama o método atualizar_championship do consume_data
     resultado = consume_data.atualizar_championship(data)
 
-    # Retorna a mensagem e o status_code apropriados
     return jsonify({'mensagem': resultado['mensagem']}), resultado['status_code']
 
 @app.route('/delete-championship', methods=['DELETE'])
@@ -86,10 +80,8 @@ def delete_championship():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    # Chama a função deletar_championship e obtém o resultado
     resultado = consume_data.deletar_championship(data)
 
-    # Retorna a mensagem e o status_code apropriados
     return jsonify({'mensagem': resultado['mensagem']}), resultado['status_code']
 
 if __name__ == '__main__':

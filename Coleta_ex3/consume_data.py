@@ -1,9 +1,7 @@
 import pandas as pd
 
-# Caminho para o arquivo CSV
 csv_file = 'agents_pick_rates.csv'
 
-# Lendo o arquivo CSV
 def consulta_csv():
     try:
         data = pd.read_csv(csv_file)
@@ -16,82 +14,68 @@ def consulta_csv():
 
 def inserir_championship(data):
     try:
-        # Lê o arquivo CSV existente
         df = pd.read_csv(csv_file)
 
-        # Adiciona os novos dados
+        if not df.empty and "id" in df.columns:
+            next_id = df["id"].max() + 1
+        else:
+            next_id = 1
+
+        data["id"] = next_id
+
         new_data = pd.DataFrame([data])
         df = pd.concat([df, new_data], ignore_index=True)
-
-        # Salva o DataFrame atualizado de volta no CSV
         df.to_csv(csv_file, index=False)
         return "Dados inseridos com sucesso!"
+
     except Exception as e:
         print(f"Ocorreu um erro ao inserir os dados: {e}")
+        return "Erro ao inserir os dados."
 
 def deletar_championship(data):
     try:
-        # Verifica se todos os campos necessários estão presentes no JSON
-        required_fields = ["Tournament", "Stage", "Match Type", "Map", "Agent", "Pick Rate"]
-        missing_fields = [field for field in required_fields if field not in data]
-        if missing_fields:
+        if "id" not in data:
             return {
-                "mensagem": f"Campos ausentes: {', '.join(missing_fields)}",
+                "mensagem": "Campo 'id' ausente.",
                 "status_code": 400
             }
 
-        # Lê o arquivo CSV existente
         df = pd.read_csv(csv_file)
 
-        # Constrói a condição para identificar a linha a ser removida
-        condition = True
-        for coluna, valor in data.items():
-            condition &= (df[coluna] == valor)
+        id_value = data["id"]
+        if id_value not in df["id"].values:
+            return {"mensagem": "Campeonato com o ID fornecido não encontrado.", "status_code": 404}
 
-        # Verifica se alguma linha atende à condição
-        if not condition.any():
-            return {"mensagem": "Campeonato não encontrado.", "status_code": 404}
+        df = df[df["id"] != id_value]
 
-        # Remove a linha que atende à condição
-        df = df[~condition]
-
-        # Salva o DataFrame atualizado de volta no CSV
         df.to_csv(csv_file, index=False)
         return {"mensagem": "Linha deletada com sucesso!", "status_code": 200}
+
     except Exception as e:
         print(f"Ocorreu um erro ao deletar os dados: {e}")
         return {"mensagem": "Erro interno no servidor.", "status_code": 500}
     
 def atualizar_championship(data):
     try:
-        # Verifica se todos os campos necessários estão presentes no JSON
-        required_fields = ["Tournament", "Stage", "Match Type", "Map", "Agent", "Pick Rate"]
-        missing_fields = [field for field in required_fields if field not in data]
-        if missing_fields:
+        if "id" not in data:
             return {
-                "mensagem": f"Campos ausentes: {', '.join(missing_fields)}",
+                "mensagem": "Campo 'id' ausente.",
                 "status_code": 400
             }
 
-        # Lê o arquivo CSV existente
         df = pd.read_csv(csv_file)
 
-        # Constrói a condição para identificar a linha a ser atualizada
-        condition = True
-        for coluna, valor in data.items():
-            if coluna != "Pick Rate":  # Ignora o campo que será atualizado
-                condition &= (df[coluna] == valor)
+        id_value = data["id"]
+        if id_value not in df["id"].values:
+            return {"mensagem": "Campeonato com o ID fornecido não encontrado.", "status_code": 404}
 
-        # Verifica se alguma linha atende à condição
-        if not condition.any():
-            return {"mensagem": "Campeonato não encontrado.", "status_code": 404}
+        for field, value in data.items():
+            if field != "id" and field in df.columns:
+                df.loc[df["id"] == id_value, field] = value
 
-        # Atualiza o campo 'Pick Rate' na linha correspondente
-        df.loc[condition, "Pick Rate"] = data["Pick Rate"]
-
-        # Salva o DataFrame atualizado de volta no CSV
         df.to_csv(csv_file, index=False)
-        return {"mensagem": "Campeonato atualizado com sucesso!", "status_code": 200}
+        return {"mensagem": "Linha atualizada com sucesso!", "status_code": 200}
+        
     except Exception as e:
         print(f"Ocorreu um erro ao atualizar os dados: {e}")
-        return {"mensagem": "Erro interno ao atualizar o campeonato.", "status_code": 500}
+        return {"mensagem": "Erro interno no servidor.", "status_code": 500}
